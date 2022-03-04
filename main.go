@@ -13,7 +13,8 @@ func main() {
 	fmt.Scanln(&url)
 	html := getHtml(url)
 	links, numOfLinks := htmlLinkMatcher(html)
-	fmt.Println(numOfLinks, links)
+	fmt.Printf("This page has %v links\n", numOfLinks)
+	fmt.Println("here are all the links>>>>>>\n", links)
 }
 
 func htmlLinkMatcher(html string) ([]string, int) {
@@ -27,7 +28,7 @@ func getHtml(url string) string {
 	if err != nil {
 		panic(err)
 	}
-	defer resp.Body.Close() //close connection 
+	defer resp.Body.Close() //close connection
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
