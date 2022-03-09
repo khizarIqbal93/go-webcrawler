@@ -4,26 +4,60 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"regexp"
+	"strings"
+
+	"golang.org/x/net/html"
 )
 
 func main() {
 	var url string
 	fmt.Println("Enter a url")
 	fmt.Scanln(&url)
-	html := getHtml(url)
-	links, numOfLinks := aTagLinkMatcher(html)
+	htmlText := getHtml(url)
+	links, numOfLinks := htmlParser(htmlText)
 	fmt.Printf("This page has %v links!\n", numOfLinks)
-	fmt.Println("here are all the links\n>>>>>>\n", links, "\n>>>>>>>")
+	fmt.Println(links)
+	visitedLinks, newLinks := goVisit(links)
+	fmt.Println(len(visitedLinks), newLinks)
 }
 
-func aTagLinkMatcher(html string) ([]string, int) {
-	r, _ := regexp.Compile(`<a (href=)?"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)">`)
-	var aTags []string = r.FindAllString(html, -1)
-	links := []string{}
-	for i := 0; i < len(aTags); i++ {
-		links = append(links, aTags[i][9:len(aTags[i]) -2])
+func goVisit(links []string) ([]string, []string) {
+	visitedLinks := []string{}
+	newLinks := []string{}
+	for i := 0; i < len(links); i++ {
+		if len(links[i]) <= 9 {
+			continue
+		}
+		htmlText := getHtml(links[i])
+		visitedLinks = append(visitedLinks, links[i])
+		links, _ := htmlParser(htmlText)
+		newLinks = append(newLinks, links...)
 	}
+	return visitedLinks, newLinks
+}
+
+
+func htmlParser(htmlDoc string) ([]string, int)   {
+	var links []string
+	doc, err := html.Parse(strings.NewReader(htmlDoc))
+	if err != nil {
+		panic(err)
+	}
+	var f func(*html.Node)
+	f = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "a" {
+			for _, a := range n.Attr {
+				if a.Key == "href" {
+					links = append(links, a.Val)
+					break
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
+		}
+	}
+	f(doc)
 	return links, len(links)
 }
 
