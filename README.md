@@ -6,10 +6,22 @@
 
 ---
 
-Run this command
+1. Clone the repo
 
 ```bash
-go run main.go
+git clone https://github.com/khizarIqbal93/go-webcrawler.git && cd go-webcrawler
+```
+
+2. Install dependencies
+
+```bash
+go get .
+```
+
+3. Run the program!
+
+```bash
+go run .
 ```
 
 You will then be asked to enter a link to a webpage. Type in a link and hit enter
