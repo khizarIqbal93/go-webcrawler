@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -13,31 +14,50 @@ func main() {
 	var url string
 	fmt.Println("Enter a url")
 	fmt.Scanln(&url)
+	domain := baseDomain(url)
 	htmlText := getHtml(url)
 	links, numOfLinks := htmlParser(htmlText)
 	fmt.Printf("This page has %v links!\n", numOfLinks)
 	fmt.Println(links)
-	visitedLinks, newLinks := goVisit(links)
+	visitedLinks, newLinks := goVisit(links, domain)
 	fmt.Println(len(visitedLinks), newLinks)
 }
 
-func goVisit(links []string) ([]string, []string) {
+func baseDomain(url string) string {
+	r, _ := regexp.Compile(`^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)`)
+	domain := r.FindAllString(url, -1)
+	return domain[0]
+}
+
+func contains(links []string, link string) bool {
+	for _, x := range links {
+		if x == link {
+			return true
+		}
+	}
+	return false
+}
+
+func goVisit(links []string, domain string) ([]string, []string) {
 	visitedLinks := []string{}
 	newLinks := []string{}
 	for i := 0; i < len(links); i++ {
-		if len(links[i]) <= 9 {
+		if strings.HasPrefix(links[i], domain) || strings.HasPrefix(links[i], "/") {
+			if !contains(visitedLinks, links[i]) {
+				fmt.Println(links[i], i, "<<<<<<Bruh>>>>>>>>")
+				// htmlText := getHtml(links[i]) // get html
+				// visitedLinks = append(visitedLinks, links[i])
+				// links, _ := htmlParser(htmlText)
+				// newLinks = append(newLinks, links...)
+			}
+		} else {
 			continue
 		}
-		htmlText := getHtml(links[i])
-		visitedLinks = append(visitedLinks, links[i])
-		links, _ := htmlParser(htmlText)
-		newLinks = append(newLinks, links...)
 	}
 	return visitedLinks, newLinks
 }
 
-
-func htmlParser(htmlDoc string) ([]string, int)   {
+func htmlParser(htmlDoc string) ([]string, int) {
 	var links []string
 	doc, err := html.Parse(strings.NewReader(htmlDoc))
 	if err != nil {
