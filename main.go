@@ -14,9 +14,13 @@ func main() {
 	var url string
 	fmt.Println("Enter a url")
 	fmt.Scanln(&url)
+	// channel := make(chan bool)
 	links:= extractLinks(url)
 	fmt.Println(links)
-	fmt.Println(len(links))
+	fmt.Println(len(links), "links found")
+	visited, linkMap := goCrawl(links)
+	fmt.Println(visited, "<<<< visited\n")
+	fmt.Println(linkMap, "<<<<links found")
 }
 
 func baseDomain(url string) string {
@@ -34,11 +38,25 @@ func contains(links []string, link string) bool {
 	return false
 }
 
-func goCrawl(links []string) ([]string, []string) {
+func goCrawl(links []string) ([]string, map[string]int) {
 	visitedLinks := []string{}
+	linkFrequency := make(map[string]int)
 	newLinks := []string{}
-	
-	return visitedLinks, newLinks
+	for i := 0; i < len(links); i++ {
+		if !contains(visitedLinks, links[i]) {
+			extractedLinks := extractLinks(links[i])
+			visitedLinks = append(visitedLinks, links[i])
+			newLinks = append(newLinks, extractedLinks...)
+		} 
+	}
+	for _, link := range newLinks {
+		if linkFrequency[link] == 0 {
+			linkFrequency[link] = 1
+		} else {
+			linkFrequency[link]++
+		}
+	}
+	return visitedLinks, linkFrequency
 }
 
 func extractLinks(url string) []string  {
@@ -47,8 +65,11 @@ func extractLinks(url string) []string  {
 	linksFound, numOfLinks := htmlParser(htmlText)
 	var validLinks []string
 	for i := 0; i < numOfLinks; i++ {
-		if strings.HasPrefix(linksFound[i], domain) || strings.HasPrefix(linksFound[i], "/") {
+		if strings.HasPrefix(linksFound[i], domain) {
 			validLinks = append(validLinks, linksFound[i])
+		} else if strings.HasPrefix(linksFound[i], "/") {
+			fullLink := domain + linksFound[i]
+			validLinks = append(validLinks, fullLink)
 		}
 	}
 	return validLinks
