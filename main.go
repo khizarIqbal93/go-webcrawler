@@ -14,13 +14,9 @@ func main() {
 	var url string
 	fmt.Println("Enter a url")
 	fmt.Scanln(&url)
-	domain := baseDomain(url)
-	htmlText := getHtml(url)
-	links, numOfLinks := htmlParser(htmlText)
-	fmt.Printf("This page has %v links!\n", numOfLinks)
+	links:= extractLinks(url)
 	fmt.Println(links)
-	visitedLinks, newLinks := goVisit(links, domain)
-	fmt.Println(len(visitedLinks), newLinks)
+	fmt.Println(len(links))
 }
 
 func baseDomain(url string) string {
@@ -38,23 +34,24 @@ func contains(links []string, link string) bool {
 	return false
 }
 
-func goVisit(links []string, domain string) ([]string, []string) {
+func goCrawl(links []string) ([]string, []string) {
 	visitedLinks := []string{}
 	newLinks := []string{}
-	for i := 0; i < len(links); i++ {
-		if strings.HasPrefix(links[i], domain) || strings.HasPrefix(links[i], "/") {
-			if !contains(visitedLinks, links[i]) {
-				fmt.Println(links[i], i, "<<<<<<Bruh>>>>>>>>")
-				// htmlText := getHtml(links[i]) // get html
-				// visitedLinks = append(visitedLinks, links[i])
-				// links, _ := htmlParser(htmlText)
-				// newLinks = append(newLinks, links...)
-			}
-		} else {
-			continue
+	
+	return visitedLinks, newLinks
+}
+
+func extractLinks(url string) []string  {
+	htmlText := getHtml(url)
+	domain := baseDomain(url)
+	linksFound, numOfLinks := htmlParser(htmlText)
+	var validLinks []string
+	for i := 0; i < numOfLinks; i++ {
+		if strings.HasPrefix(linksFound[i], domain) || strings.HasPrefix(linksFound[i], "/") {
+			validLinks = append(validLinks, linksFound[i])
 		}
 	}
-	return visitedLinks, newLinks
+	return validLinks
 }
 
 func htmlParser(htmlDoc string) ([]string, int) {
