@@ -5,8 +5,11 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 
+	"github.com/fatih/color"
 	"golang.org/x/net/html"
 )
 
@@ -14,13 +17,14 @@ func main() {
 	var url string
 	fmt.Println("Enter a url")
 	fmt.Scanln(&url)
+	startTime := time.Now()
 	// channel := make(chan bool)
 	links:= extractLinks(url)
-	fmt.Println(links)
-	fmt.Println(len(links), "links found")
+	color.Blue("%s links found!", strconv.Itoa(len(links)))
 	visited, linkMap := goCrawl(links)
-	fmt.Println(visited, "<<<< visited\n")
-	fmt.Println(linkMap, "<<<<links found")
+	color.Cyan("%s unique pages visited!", strconv.Itoa(len(visited)))
+	fmt.Println(len(linkMap), "<<<<link map")
+	fmt.Println(time.Since(startTime))
 }
 
 func baseDomain(url string) string {
