@@ -20,12 +20,17 @@ func main() {
 	startTime := time.Now()
 	// channel := make(chan bool)
 	links:= extractLinks(url)
+	// for 
+	//  go link(chanel)
 	color.Blue("%s links found!", strconv.Itoa(len(links)))
 	visited, linkMap := goCrawl(links)
 	color.Cyan("%s unique pages visited!", strconv.Itoa(len(visited)))
 	fmt.Println(len(linkMap), "<<<<link map")
 	fmt.Println(time.Since(startTime))
+	// <- channel
 }
+
+
 
 func baseDomain(url string) string {
 	r, _ := regexp.Compile(`^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)`)
