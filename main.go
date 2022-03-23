@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"regexp"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -32,11 +32,11 @@ func main() {
 
 
 
-func baseDomain(url string) string {
-	r, _ := regexp.Compile(`^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)`)
-	domain := r.FindAllString(url, -1)
-	return domain[0]
-}
+// func baseDomain(url string) string {
+// 	r, _ := regexp.Compile(`^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)`)
+// 	domain := r.FindAllString(url, -1)
+// 	return domain[0]
+// }
 
 func contains(links []string, link string) bool {
 	for _, x := range links {
@@ -68,16 +68,21 @@ func goCrawl(links []string) ([]string, map[string]int) {
 	return visitedLinks, linkFrequency
 }
 
-func extractLinks(url string) []string  {
-	htmlText := getHtml(url)
-	domain := baseDomain(url)
+func extractLinks(link string) []string  {
+	htmlText := getHtml(link)
+	u, err := url.Parse(link)
+	if err != nil {
+		panic(err)
+	}
+	scheme := u.Scheme
+	host := u.Hostname()
 	linksFound, numOfLinks := htmlParser(htmlText)
 	var validLinks []string
 	for i := 0; i < numOfLinks; i++ {
-		if strings.HasPrefix(linksFound[i], domain) {
+		if strings.HasPrefix(linksFound[i], scheme + "://" + host) {
 			validLinks = append(validLinks, linksFound[i])
 		} else if strings.HasPrefix(linksFound[i], "/") {
-			fullLink := domain + linksFound[i]
+			fullLink := scheme + "://" + host + linksFound[i]
 			validLinks = append(validLinks, fullLink)
 		}
 	}
