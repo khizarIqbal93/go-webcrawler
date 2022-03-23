@@ -19,8 +19,8 @@ func main() {
 	fmt.Scanln(&url)
 	startTime := time.Now()
 	// channel := make(chan bool)
-	links:= extractLinks(url)
-	// for 
+	links := extractLinks(url)
+	// for
 	//  go link(chanel)
 	color.Blue("%s links found!", strconv.Itoa(len(links)))
 	visited, linkMap := goCrawl(links)
@@ -30,33 +30,16 @@ func main() {
 	// <- channel
 }
 
-
-
-// func baseDomain(url string) string {
-// 	r, _ := regexp.Compile(`^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)`)
-// 	domain := r.FindAllString(url, -1)
-// 	return domain[0]
-// }
-
-func contains(links []string, link string) bool {
-	for _, x := range links {
-		if x == link {
-			return true
-		}
-	}
-	return false
-}
-
-func goCrawl(links []string) ([]string, map[string]int) {
-	visitedLinks := []string{}
+func goCrawl(links []string) (map[string]bool, map[string]int) {
+	visitedLinks := make(map[string]bool)
 	linkFrequency := make(map[string]int)
 	newLinks := []string{}
 	for i := 0; i < len(links); i++ {
-		if !contains(visitedLinks, links[i]) {
+		if !visitedLinks[links[i]] {
 			extractedLinks := extractLinks(links[i])
-			visitedLinks = append(visitedLinks, links[i])
+			visitedLinks[links[i]] = true
 			newLinks = append(newLinks, extractedLinks...)
-		} 
+		}
 	}
 	for _, link := range newLinks {
 		if linkFrequency[link] == 0 {
@@ -68,7 +51,7 @@ func goCrawl(links []string) ([]string, map[string]int) {
 	return visitedLinks, linkFrequency
 }
 
-func extractLinks(link string) []string  {
+func extractLinks(link string) []string {
 	htmlText := getHtml(link)
 	u, err := url.Parse(link)
 	if err != nil {
@@ -79,7 +62,7 @@ func extractLinks(link string) []string  {
 	linksFound, numOfLinks := htmlParser(htmlText)
 	var validLinks []string
 	for i := 0; i < numOfLinks; i++ {
-		if strings.HasPrefix(linksFound[i], scheme + "://" + host) {
+		if strings.HasPrefix(linksFound[i], scheme+"://"+host) {
 			validLinks = append(validLinks, linksFound[i])
 		} else if strings.HasPrefix(linksFound[i], "/") {
 			fullLink := scheme + "://" + host + linksFound[i]
