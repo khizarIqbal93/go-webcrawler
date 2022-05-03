@@ -16,19 +16,25 @@ func main() {
 	fmt.Println("Enter a url")
 	fmt.Scanln(&inputUrl)
 	startTime := time.Now()
+	visited := make(map[string]int)
 	links := utils.ExtractLinksFromPage(inputUrl)
 	color.Blue("%s links found!", strconv.Itoa(len(links)))
-	c := make(chan bool)
+	c := make(chan []string)
 	for index, link := range links {
-		go func(pageLink string, i int, channel chan bool) {
+		go func(pageLink string, i int, channel chan []string) {
 			newLinks := utils.ExtractLinksFromPage(pageLink)
-			output = append(output, newLinks...)
-			fmt.Println(i, output)
-			channel <- true
-
+			channel <- newLinks
 		}(link, index, c)
 	}
-	<-c
+
+	for i := 0; i < len(links); i++ {
+		for _, link := range <-c {
+			visited[link]++
+			if visited[link] == 1 {
+				output = append(output, link)
+			}
+		}
+	}
 	fmt.Println(len(output))
 	fmt.Println(time.Since(startTime))
 
