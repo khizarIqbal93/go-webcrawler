@@ -9,6 +9,7 @@ import (
 	"golang.org/x/net/html"
 )
 
+// takes in a url string and returns html doc in string
 func GetHtml(url string) string {
 	resp, err := http.Get(url)
 	if err != nil {
@@ -23,8 +24,9 @@ func GetHtml(url string) string {
 	return html
 }
 
-func HtmlParser(htmlDoc string) ([]string, int) {
-	var links []string
+// takes a html doc in string and returns a slice of links found in the html doc
+func ATagLinksExtractor(htmlDoc string) map[string]int {
+	var linksFound = make(map[string]int)
 	doc, err := html.Parse(strings.NewReader(htmlDoc))
 	if err != nil {
 		panic(err)
@@ -34,7 +36,7 @@ func HtmlParser(htmlDoc string) ([]string, int) {
 		if n.Type == html.ElementNode && n.Data == "a" {
 			for _, a := range n.Attr {
 				if a.Key == "href" {
-					links = append(links, a.Val)
+					linksFound[a.Val]++
 					break
 				}
 			}
@@ -44,10 +46,11 @@ func HtmlParser(htmlDoc string) ([]string, int) {
 		}
 	}
 	f(doc)
-	return links, len(links)
+	return linksFound
 }
 
-func ExtractLinks(link string) []string {
+func ExtractLinksFromPage(link string) []string {
+	var linksFound []string
 	htmlText := GetHtml(link)
 	u, err := url.Parse(link)
 	if err != nil {
@@ -55,36 +58,25 @@ func ExtractLinks(link string) []string {
 	}
 	scheme := u.Scheme
 	host := u.Hostname()
-	linksFound, numOfLinks := HtmlParser(htmlText)
-	var validLinks []string
-	for i := 0; i < numOfLinks; i++ {
-		if strings.HasPrefix(linksFound[i], scheme+"://"+host) {
-			validLinks = append(validLinks, linksFound[i])
-		} else if strings.HasPrefix(linksFound[i], "/") {
-			fullLink := scheme + "://" + host + linksFound[i]
-			validLinks = append(validLinks, fullLink)
+	links := ATagLinksExtractor(htmlText)
+
+	for key, _ := range links {
+		if strings.HasPrefix(key, "/") {
+			fullLink := scheme + "://" + host + key
+			linksFound = append(linksFound, fullLink)
+		} else if strings.HasPrefix(key, scheme+"://"+host) {
+			linksFound = append(linksFound, key)
 		}
 	}
-	return validLinks
+	return linksFound
 }
 
-func GoCrawl(links []string) (map[string]bool, map[string]int) {
-	visitedLinks := make(map[string]bool)
+func GoCrawl(link string) map[string]int {
 	linkFrequency := make(map[string]int)
-	newLinks := []string{}
-	for i := 0; i < len(links); i++ {
-		if !visitedLinks[links[i]] {
-			extractedLinks := ExtractLinks(links[i])
-			visitedLinks[links[i]] = true
-			newLinks = append(newLinks, extractedLinks...)
-		}
-	}
-	for _, link := range newLinks {
-		if linkFrequency[link] == 0 {
-			linkFrequency[link] = 1
-		} else {
-			linkFrequency[link]++
-		}
-	}
-	return visitedLinks, linkFrequency
+	// for key, elem := range links {
+	// 	htmlDoc := GetHtml(key)
+	// 	linksFound := ATagLinksExtractor(htmlDoc)
+
+	// }
+	return linkFrequency
 }

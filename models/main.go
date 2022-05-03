@@ -2,8 +2,8 @@ package models
 
 import "net/url"
 
-type link struct {
-	url      url.URL
-	appeared int
-	parent   url.URL
+type Link struct {
+	Url      url.URL `json:"url"`
+	Appeared int     `json:"appeared"`
+	Parent   url.URL `json:"parent"`
 }
