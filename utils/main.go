@@ -61,7 +61,7 @@ func ExtractLinksFromPage(link string) []models.Link {
 	host := u.Hostname()
 	links := ATagLinksExtractor(htmlText)
 
-	for key, _ := range links {
+	for key := range links {
 		if strings.HasPrefix(key, "/") {
 			fullLink := scheme + "://" + host + key
 			if fullLink +"/" == link || link +"/" == fullLink {

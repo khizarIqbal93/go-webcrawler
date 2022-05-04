@@ -30,7 +30,7 @@ func main() {
 
 	output.LinksFound= utils.ExtractLinksFromPage(inputUrl)
 
-	color.Blue("%s links found in %s", strconv.Itoa(len(output.LinksFound)), inputUrl)
+	color.Green("%s links found in %s", strconv.Itoa(len(output.LinksFound)), inputUrl)
 	c := make(chan []models.Link)
 	for index, link := range output.LinksFound {
 		go func(pageLink models.Link, i int, channel chan []models.Link) {
