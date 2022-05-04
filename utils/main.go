@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/KhizarIqbal93/go-webcrawler/models"
 	"golang.org/x/net/html"
 )
 
@@ -49,8 +50,8 @@ func ATagLinksExtractor(htmlDoc string) map[string]int {
 	return linksFound
 }
 
-func ExtractLinksFromPage(link string) []string {
-	var linksFound []string
+func ExtractLinksFromPage(link string) []models.Link {
+	var linksFound []models.Link
 	htmlText := GetHtml(link)
 	u, err := url.Parse(link)
 	if err != nil {
@@ -60,23 +61,20 @@ func ExtractLinksFromPage(link string) []string {
 	host := u.Hostname()
 	links := ATagLinksExtractor(htmlText)
 
-	for key, _ := range links {
+	for key := range links {
 		if strings.HasPrefix(key, "/") {
 			fullLink := scheme + "://" + host + key
-			linksFound = append(linksFound, fullLink)
+			if fullLink +"/" == link || link +"/" == fullLink {
+				continue
+			}
+			linkObj := models.Link{Url: fullLink, Parent: link}
+			linksFound = append(linksFound, linkObj)
 		} else if strings.HasPrefix(key, scheme+"://"+host) {
-			linksFound = append(linksFound, key)
+			linkObj := models.Link{Url: key, Parent: link}
+			linksFound = append(linksFound, linkObj)
+		} else if key == link + "/" {
+			continue
 		}
 	}
 	return linksFound
-}
-
-func GoCrawl(link string) map[string]int {
-	linkFrequency := make(map[string]int)
-	// for key, elem := range links {
-	// 	htmlDoc := GetHtml(key)
-	// 	linksFound := ATagLinksExtractor(htmlDoc)
-
-	// }
-	return linkFrequency
 }

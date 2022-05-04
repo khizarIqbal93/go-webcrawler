@@ -1,9 +1,12 @@
 package models
 
-import "net/url"
-
 type Link struct {
-	Url      url.URL `json:"url"`
-	Appeared int     `json:"appeared"`
-	Parent   url.URL `json:"parent"`
+	Url    string `json:"url"`
+	Parent string `json:"parent"`
+	Links  []Link `json:"links"`
+}
+
+type Links struct {
+	EntryPoint string `json:"entryPoint"`
+	LinksFound []Link `json:"linksFound"`
 }
